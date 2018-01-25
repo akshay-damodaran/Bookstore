@@ -1,15 +1,31 @@
-// Create store
+// Store config
 
-import { createStore, combineReducers, applyMiddleware } from 'redux';
+import 'babel-polyfill';
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import logger from 'redux-logger';
-
-import loginReducer from './reducers/loginReducer';
+import createSageMiddleware from 'redux-saga';
 
 import loadState from './localStorage';
 
+import loginReducer from './reducers/loginReducer';
+
+import rootSaga from './sagas/rootSaga';
+
+const sagaMiddleware = createSageMiddleware();
+
 const middleware = [
+  sagaMiddleware,
   logger,
 ];
+
+const composeEnhancers =
+typeof window === 'object' &&
+window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?
+  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+    // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
+  }) : compose;
+
+const enhancer = composeEnhancers(applyMiddleware(...middleware));
 
 const persistedState = loadState();
 
@@ -17,8 +33,12 @@ const rootReducer = combineReducers({
   loginReducer,
 });
 
-export default createStore(
+const store = createStore(
   rootReducer,
   persistedState,
-  applyMiddleware(...middleware),
+  enhancer,
 );
+
+sagaMiddleware.run(rootSaga);
+
+export default store;
