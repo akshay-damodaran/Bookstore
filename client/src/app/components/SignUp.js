@@ -1,5 +1,4 @@
 import React from 'react';
-import md5 from 'md5';
 
 class SignUp extends React.Component {
   static renderNoLoader() {
